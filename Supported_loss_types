@@ -1,0 +1,32 @@
+supported_losses = {
+    'data': [
+        'all'  # Implied: all features listed in config['features']['output']
+    ],
+    'phys': [
+        'TKE',
+        'aij', 'a_ij', 'anisotropy', 'a',
+        'bij', 'b_ij', 'normalized_anisotropy', 'norm_aij', 'b'
+    ],
+    'constraint': [
+        # Anisotropy invariants (a_ij) - components
+        'inv_a_comp', 'inv_aij_comp', 'inv_a_ij_comp', 'inv_a_component',
+        # Anisotropy invariants (a_ij) - eigenvalue derived
+        'inv_a_eig', 'inv_aij_eig', 'inv_a_eigen',
+        # Anisotropy consistency (component vs eig)
+        'inv_a_consistency', 'inv_aij_consist',
+        # Group flags
+        'inv_a_all',
+
+        # Normalized anisotropy invariants (b_ij) - components
+        'inv_b_comp', 'inv_bij_comp', 'inv_b_ij_comp', 'inv_b_component',
+        # Normalized anisotropy invariants (b_ij) - eigenvalue derived
+        'inv_b_eig', 'inv_bij_eig', 'inv_b_eigen',
+        # Normalized anisotropy consistency
+        'inv_b_consistency', 'inv_bij_consist', 'inv_b_cons', 'inv_bij_cons',
+        # Group flags
+        'inv_b_all', 'inv_bij_all',
+
+        # Cross-check between a_ij and b_ij eigenvalues
+        'ab_eig',  # corresponds to 'bij_eigen_relation' loss
+    ]
+}

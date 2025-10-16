@@ -1,0 +1,107 @@
+debug: false
+eval_training_cases: true
+features:
+  denorm_loss: false
+  dnd: nondim
+  grad_type: MLS
+  in_is_out: false
+  input: FS8
+  norm: global
+  output:
+  - uu
+  - uv
+  - vv
+  - uw
+  - vw
+  - ww
+  save_kde: true
+  trim_z: true
+  y_norm: false
+model:
+  activation: leakyrelu
+  dropout: 0.005
+  grid_range:
+  - -1.2
+  - 1.2
+  layers: 15
+  seed: 42
+  shape:
+  - - 5
+    - 5
+  - - 5
+    - 5
+  - - 5
+    - 5
+  spline_order: 3
+  type: fcn
+  width: 10
+paths:
+  data_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/Data/Shear_mixing
+  name: new_losses_rst1
+  output_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/outputs
+seed: 42
+training:
+  alpha: 0.99
+  batch_size: 4096
+  beta: 1.0
+  criterion: mse
+  epochs: 3000
+  eval_every: 20
+  lambda: 0.0005
+  loss:
+    terms:
+      constraint:
+        enabled: true
+        types:
+        - inv_comp
+      data:
+        enabled: true
+        types:
+        - frob
+      phys:
+        enabled: true
+        types:
+        - tke
+    weights:
+      case:
+        dynamic: false
+        enabled: false
+      constraint:
+        dynamic: false
+        enabled: false
+      data:
+        dynamic: false
+        enabled: false
+      enabled: true
+      group:
+        constraint: 0.01
+        data: 1.0
+        dynamic: false
+        enabled: true
+        phys: 0.0005
+      phase_switch:
+        enabled: false
+        loss_key: ''
+        post_switch_weight: 1.0
+        pre_switch_weight: 0.01
+        threshold_percent: 0.1
+      phys:
+        dynamic: false
+        enabled: true
+  lr: 0.005
+  optimizer: adam
+  scheduler:
+    T_0: 200
+    T_mult: 2
+    cooldown: 100
+    delay: 500
+    enabled: true
+    eta_min: 1.0e-09
+    factor: 0.65
+    gamma: 0.5
+    min_lr: 1.0e-08
+    patience: 300
+    step_size: 250
+    type: step
+  seed: 42
+trial_name: single_inter_c2_f2

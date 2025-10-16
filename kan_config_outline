@@ -1,0 +1,66 @@
+# ---- Feature Definitions ----
+features:
+  input:  10                 # optional, if needed
+  output: ['uu', 'vv', 'ww', 'uv', 'uw', 'vw']
+
+# ---- Model Architecture ----
+model:
+  type: 'KAN'               # options: 'KAN', 'FCN'
+  shape: [10, 32, 32, 6]    # layer sizes or KAN width config
+  spline_order: 3           # KAN only
+  grid_range: [-1.2, 1.2]   # KAN only
+  seed: 42                  # for reproducibility
+
+# ---- Training Settings ----
+training:
+  epochs: 1000
+  batch_size: 128
+  eval_every: 10
+
+  # ---- Loss Structure ----
+  loss:
+    weights:
+      group:
+        data: 1.0
+        phys: 1.0
+        constraint: 1.0
+
+      phase_switch:
+        enabled: true
+        loss_key: "invariants"         # loss key to trigger switch
+        threshold_percent: 0.1
+        pre_switch_weight: 0.01
+        post_switch_weight: 1.0
+
+    phys:
+      enabled: true
+      types:
+        - tke
+        - aij
+        - bij
+
+    constraint:
+      enabled: true
+      types:
+        - invariant_supervision
+        - eigen_invariants
+        - bij_aij_eig_relation
+
+  # ---- Optimizer ----
+  optimizer:
+    type: 'adam'             # options: 'adam', 'sgd', etc.
+    lr: 0.001
+    weight_decay: 0.0        # optional
+
+  # ---- Scheduler ----
+  scheduler:
+    enabled: true
+    type: 'reduce_on_plateau'  # or: 'step', 'cosine', etc.
+    factor: 0.5
+    patience: 10
+    min_lr: 1e-6
+    step_size: 50             # for StepLR if used
+    gamma: 0.9                # decay factor for StepLR or CosineAnnealingLR
+
+# ---- Trial Setup ----
+trial_name: 'baseline'        # or a dict: {train: [...], test: [...]}

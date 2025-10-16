@@ -1,0 +1,28 @@
+# Data + models
+*.pkl
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.t7
+
+# Tensors / metrics
+*.tensor
+*.npy
+*.npz
+*.csv
+*.json
+
+# Images
+*.png
+*.jpg
+*.jpeg
+
+# Text / docs
+*.txt
+*.pdf
+
+# Other
+__pycache__/
+*.log
+*.tmp

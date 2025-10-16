@@ -1,0 +1,115 @@
+debug: false
+eval_training_cases: true
+features:
+  denorm_loss: false
+  dnd: nondim
+  grad_type: MLS
+  in_is_out: false
+  input: FS8
+  norm: column
+  output:
+  - a_xx
+  - a_xy
+  - a_yy
+  - a_xz
+  - a_yz
+  - a_zz
+  - tke
+  save_kde: true
+  trim_z: true
+  y_norm: true
+model:
+  activation: leakyrelu
+  dropout: 0.005
+  grid_range:
+  - -0.2
+  - 1.2
+  layers: 15
+  seed: 42
+  shape:
+  - - 5
+    - 5
+  - - 5
+    - 5
+  - - 5
+    - 5
+  spline_order: 3
+  type: fcn
+  width: 10
+paths:
+  data_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/Data/Shear_mixing
+  name: new_computer_test3
+  output_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/outputs
+seed: 42
+training:
+  alpha: 0.99
+  batch_size: 1024
+  beta: 1.0
+  criterion: mse
+  epochs: 2500
+  eval_every: 20
+  lambda: 5.0e-05
+  loss:
+    terms:
+      constraint:
+        enabled: false
+        types:
+        - inv_a_tr
+        - inv_a_comp
+      data:
+        enabled: true
+        types:
+        - riemann
+        - spd
+        - frob
+      phys:
+        enabled: false
+        types:
+        - rst
+    warmup:
+      eigen: 1000
+      invariants: 1000
+    weights:
+      case:
+        dynamic: false
+        enabled: false
+      constraint:
+        dynamic: false
+        enabled: false
+      data:
+        dynamic: false
+        enabled: false
+        tke_scalar: 5.0
+      enabled: true
+      group:
+        constraint: 2.0
+        data: 1.0
+        dynamic: false
+        enabled: true
+        phys: 0.002
+      phase_switch:
+        enabled: false
+        loss_key: ''
+        post_switch_weight: 1.0
+        pre_switch_weight: 0.01
+        threshold_percent: 0.1
+      phys:
+        dynamic: false
+        enabled: false
+  lr: 0.001
+  optimizer: adam
+  scheduler:
+    T_0: 200
+    T_mult: 2
+    cooldown: 100
+    delay: 500
+    enabled: true
+    eta_min: 1.0e-09
+    factor: 0.65
+    gamma: 0.5
+    min_lr: 1.0e-08
+    patience: 300
+    step_size: 300
+    type: step
+  seed: 42
+trial_name: single_inter_c2_f2

@@ -1,0 +1,4 @@
+Host Plover
+    HostName plover.ndc.nasa.gov
+    SmartcardDevice "C:\Program Files\HID Global\ActivClient\acpkcs211.dll"
+    User eoporter
