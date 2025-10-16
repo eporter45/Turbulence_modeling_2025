@@ -8,11 +8,18 @@ The 2025 campaign emphasizes closures that respect turbulence theory while
 remaining practical for engineering design loops, blending classical invariants
 with modern machine learning pipelines.
 
-## Masthead
+Building upon the 2024 pipeline for incompressible turbulence prediction,  
+this iteration expands into **compressible flow regimes**, using experimental datasets  
+to validate ML-driven models against real physical measurements of shear-layer turbulence.
 
-### Project Focus
-- Data-driven turbulence closure research exploring Reynolds stress, anisotropy,
-  and thermodynamic target predictions with physics-guided neural networks.
+### 🚀 Project Focus
+
+- **Compressible shear mixing research** focused on modeling and predicting turbulence dynamics in high-speed shear-layer flows.  
+- Utilizes the [NASA Langley Compressible Mixing Layer Experimental Dataset](https://turbmodels.larc.nasa.gov/Other_exp_Data/compressible_mixinglayers_exp.html) as the primary benchmark for validation and feature development.  
+- Investigates **anisotropy, turbulent kinetic energy transport, and compressibility effects** within shear-driven turbulence.  
+- Develops and evaluates **physics-guided neural networks** and hybrid ML–CFD approaches for reconstructing flow-field quantities and closure terms.  
+- Emphasizes **data-driven generalization across Mach regimes**, enabling models to learn physical correlations between density gradients, Reynolds stresses, and energy dissipation in compressible turbulence.
+
 
 ### Primary Maintainers
 - **Elliot Porter** – original author of the simulation pipelines and trial
