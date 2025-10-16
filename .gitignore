@@ -26,3 +26,5 @@
 __pycache__/
 *.log
 *.tmp
+
+/KAN_lib/
