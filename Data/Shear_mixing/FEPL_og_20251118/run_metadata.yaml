@@ -1,0 +1,20 @@
+config_name: FEPL_og_20251118
+timestamp: '2025-11-18T13:48:31'
+cases:
+- Case1
+- Case2
+timing_log:
+  Case1:
+    Stage1: 297.63
+    Stage2: 0.08
+    Stage3: 17.44
+    Stage4: 0.61
+    Stage5: 0.93
+    Stage6: 0.3
+  Case2:
+    Stage1: 309.76
+    Stage2: 0.07
+    Stage3: 17.13
+    Stage4: 0.6
+    Stage5: 0.96
+    Stage6: 0.24

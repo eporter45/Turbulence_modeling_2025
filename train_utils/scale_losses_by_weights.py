@@ -57,27 +57,3 @@ def apply_weights_to_loss_dict(loss_dict, weights_dict, case_name):
         loss_dict['constraint'] = const_l
 
     return loss_dict
-
-import torch
-
-def _to_float(x):
-    return x.item() if torch.is_tensor(x) else float(x)
-
-def summate_losses(loss_group: dict) -> float:
-    if loss_group is None:
-        return 0.0
-    return sum(_to_float(v) for v in loss_group.values())
-
-def summate_loss_groups(loss_dict):
-    total = 0.0
-    for group in ['data', 'phys', 'constraint']:
-        lg = loss_dict.get(group)
-        group_total = summate_losses(lg)
-        if group_total > 0.0 and lg is not None:
-            lg['net'] = group_total  # store as float
-        total += group_total
-    loss_dict['net'] = total
-    return total
-
-
-

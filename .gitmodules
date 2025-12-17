@@ -1,0 +1,3 @@
+[submodule "extern/tbnn"]
+	path = extern/tbnn
+	url = https://github.com/sandialabs/tbnn.git

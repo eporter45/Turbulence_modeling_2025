@@ -24,7 +24,13 @@ model:
   grid_range:
   - -0.2
   - 1.2
+  hidden_dims:
+  - 64
+  - 64
+  - 32
+  input_dim_invariants: 5
   layers: 15
+  output_dim: 10
   seed: 42
   shape:
   - - 5
@@ -34,12 +40,13 @@ model:
   - - 5
     - 5
   spline_order: 3
+  tensor_basis_dim: 10
   type: fcn
   width: 10
 paths:
-  data_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/Data/Shear_mixing
+  data_dir: /Users/elliotporter/Desktop/Turb_research/Turb_PL/Data/Shear_mixing
   name: new_losses_aij_t1
-  output_dir: /Users/elliotporter/Desktop/Summer_research/Phys_kan/outputs
+  output_dir: /Users/elliotporter/Desktop/Turb_research/Turb_PL/outputs
 seed: 42
 training:
   alpha: 0.99

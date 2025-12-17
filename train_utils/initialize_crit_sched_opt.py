@@ -7,6 +7,7 @@ Created on Mon Jun 30 16:27:34 2025
 from torch import mean as tmean
 import torch.optim.lr_scheduler as sched
 import torch.nn as nn
+import torch
 from torch.nn import MSELoss, L1Loss
 import torch.optim as optim
 # criterion Class
@@ -63,6 +64,8 @@ def initialize_optimizer(config, model):
     if opt in ('rms', 'rmsprop', 'rms_prop'):
         return optim.RMSprop(model.parameters(), lr=lrt, weight_decay=lamb,
                                     alpha=alph, eps=1e-5)
+    if opt in ('soap', 'SOAP', 'sp'):
+        return optim.SGD(model.parameters(), lr=lrt, weight_decay=lamb,)
     else:
         raise TypeError(f'Optimizer type, {opt} is not supported or is misspelled.')
 
@@ -114,3 +117,35 @@ def initialize_crit_sched_optimizer(model, config):
         scheduler = initialize_scheduler(optimizer, config)
     return criterion, optimizer, scheduler
 
+
+def step_scheduler_if_enabled(scheduler, config, epoch, loss_value=None):
+    """
+    Safely step any scheduler type with optional delay and mode handling.
+
+    Parameters
+    ----------
+    scheduler : torch.optim.lr_scheduler._LRScheduler or None
+        The scheduler object (can be StepLR, ReduceLROnPlateau, etc.).
+    config : dict
+        Full YAML config with training/scheduler keys.
+    epoch : int
+        Current epoch index.
+    loss_value : float, optional
+        Latest validation or training loss (required for ReduceLROnPlateau types).
+    """
+    if not scheduler:
+        return
+
+    sched_cfg = config['training']['scheduler']
+    delay = sched_cfg.get('delay', 0)
+    sched_type = sched_cfg.get('type', '').lower()
+
+    if epoch <= delay:
+        return  # skip until after delay
+
+    if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+        scheduler.step(loss_value)
+    elif sched_type in ('reduce', 'reduce_lr', 'reduce_on_plateau'):
+        scheduler.step(loss_value)
+    else:
+        scheduler.step()

@@ -1,0 +1,20 @@
+config_name: FE_PL2_20251029
+timestamp: '2025-10-29T14:27:20'
+cases:
+- Case1
+- Case2
+timing_log:
+  Case1:
+    Stage1: 429.81
+    Stage2: 0.06
+    Stage3: 17.38
+    Stage4: 0.6
+    Stage5: 0.84
+    Stage6: 0.29
+  Case2:
+    Stage1: 474.79
+    Stage2: 0.08
+    Stage3: 16.92
+    Stage4: 0.59
+    Stage5: 0.81
+    Stage6: 0.27

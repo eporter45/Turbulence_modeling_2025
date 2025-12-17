@@ -18,10 +18,10 @@ import scipy
 import glob
 import re
 
-case = 'Case3'
+case = 'Case1'
 big_data_dir = os.path.join(project_root, 'Data')
-save_dir = os.path.join(big_data_dir, 'Shear_mixing','cleaned_exp' )
-case_dir = os.path.join(big_data_dir, 'Shear_mixing', case)
+save_dir = os.path.join(big_data_dir, 'Shear_mixing','EXP_ex' )
+case_dir = os.path.join(big_data_dir, 'Shear_mixing','Raw_data','exp', case)
 
 def get_nested_dir(case_path, startswith=''):
     for entry in os.listdir(case_path):

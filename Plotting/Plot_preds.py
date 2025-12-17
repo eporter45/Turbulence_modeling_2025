@@ -1,181 +1,158 @@
 # -*- coding: utf-8 -*-
 """
-Visualization of Predicted vs. Ground Truth Tensor Fields
+Updated Tensor Field Visualization (for TBNN outputs)
+----------------------------------------------------
+Uses fast grid interpolation and pcolormesh instead of tricontourf.
 
-Provides functions to plot tensor field components (e.g., Reynolds stresses, anisotropy tensors)
-for multiple cases on triangulated grids.
+Each component of a_ij, b_ij, or r_ij is plotted as:
+  - Truth
+  - Prediction
+  - Absolute Difference
 
-Features:
-- Plots truth, prediction, and absolute difference side-by-side for each tensor component.
-- Supports global uniform or per-sample (row-wise) color scaling.
-- Automatically saves figures organized by tensor type and case.
-- Uses output feature names from config to label plots appropriately.
-
-Created on Wed Jul 16 11:04:38 2025
-
-@author: eoporter
+Supports:
+  - Global (uniform) or per-row (component-wise) color scaling
+  - Auto-interpolation to a regular grid for smooth visualization
+  - Saves organized by case and tensor key
 """
 
 import matplotlib.pyplot as plt
-import torch
-import os
-from pathlib import Path
 import numpy as np
-import matplotlib.tri as tri
+from scipy.interpolate import griddata
+from pathlib import Path
+import torch
 
-
+# --------------------------------------------------------------------------
 def get_tensor_component_names(key, config):
+    """Return list of tensor component names based on key and config."""
     if key == 'k':
         return ['k']
-    else:
-        features = config['features']['output']
-        component_map = {
-            'uu': '11', 'vv': '22', 'ww': '33',
-            'uv': '12', 'uw': '13', 'vw': '23'
-        }
-        return [component_map.get(f.lower(), f) for f in features]
+    features = config['features']['output']
+    component_map = {
+        'a_xx': 'xx', 'a_xy': 'xy', 'a_yy': 'yy',
+        'a_xz': 'xz', 'a_yz': 'yz', 'a_zz': 'zz',
+        'b_xx': 'xx', 'b_xy': 'xy', 'b_yy': 'yy',
+        'b_xz': 'xz', 'b_yz': 'yz', 'b_zz': 'zz',
+        'uu': 'xx', 'uv': 'xy', 'vv': 'yy',
+        'uw': 'xz', 'vw': 'yz', 'ww': 'zz'
+    }
+    return [component_map.get(f.lower(), f) for f in features]
 
-def plot_triplet(axs, tri, truth, pred, title_prefix, vmin=None, vmax=None, levels=100):
+
+# --------------------------------------------------------------------------
+def plot_triplet_pcolormesh(axs, cx, cy, truth, pred, title_prefix,
+                            vmin=None, vmax=None, cmap='RdBu_r', grid_res=200):
+    """Plot truth/pred/diff fields on common grid using pcolormesh."""
     diff = np.abs(truth - pred)
 
-    # Flatten if needed
-    truth = np.ravel(truth)
-    pred  = np.ravel(pred)
-    diff  = np.ravel(diff)
+    # Make a regular mesh grid for smoother visuals
+    x = np.linspace(cx.min(), cx.max(), grid_res)
+    y = np.linspace(cy.min(), cy.max(), grid_res)
+    X, Y = np.meshgrid(x, y)
 
-    titles = [f"{title_prefix} Truth", f"{title_prefix} Pred", f"{title_prefix} Diff"]
-    values = [truth, pred, diff]
+    # Interpolate scattered data onto grid
+    Z_truth = griddata((cx, cy), truth, (X, Y), method='linear')
+    Z_pred  = griddata((cx, cy), pred,  (X, Y), method='linear')
+    Z_diff  = np.abs(Z_truth - Z_pred)
+
+    fields = [Z_truth, Z_pred, Z_diff]
+    titles = [f"{title_prefix} Truth", f"{title_prefix} Pred", f"{title_prefix} |Diff|"]
 
     for i, ax in enumerate(axs):
-        cf = ax.tricontourf(
-            tri,
-            values[i],
-            levels=levels,
-            cmap='RdBu_r',
-            vmin=vmin,
-            vmax=vmax
-        )
-        ax.set_title(titles[i])
+        pcm = ax.pcolormesh(X, Y, fields[i],
+                            cmap=cmap, shading='auto', vmin=vmin, vmax=vmax)
+        ax.set_title(titles[i], fontsize=10)
         ax.set_aspect('equal')
         ax.axis('off')
-        plt.colorbar(cf, ax=ax, shrink=0.7)
+        plt.colorbar(pcm, ax=ax, shrink=0.7)
 
 
-        
-        
-def plot_all_preds(pred_list, truth_list, case_names, grid_dict, key, save_dir, config, uniform_scale=True, best_fin=''):
-    # Squeeze example tensor to determine shape
-    tensor = pred_list[0].squeeze()
-    if tensor.ndim == 1:
-        tensor = tensor.unsqueeze(1)
-    n_features = tensor.shape[1]
+# --------------------------------------------------------------------------
+def plot_all_preds(pred_list, truth_list, case_names, grid_dict,
+                   key, save_dir, config, uniform_scale=True,
+                   best_fin='', cmap='RdBu_r'):
+    """Plot each tensor component (truth/pred/diff) for all cases."""
+    n_features = pred_list[0].squeeze().shape[-1]
     feature_names = get_tensor_component_names(key, config)
 
+    # --- Determine global vmin/vmax across all cases if uniform scale ---
     if uniform_scale:
         vmins, vmaxs = [], []
         for i in range(n_features):
             all_vals = []
-            for truth_tensor, pred_tensor in zip(truth_list, pred_list):
-                # Squeeze and reshape if needed
-                truth_tensor = truth_tensor.squeeze()
-                pred_tensor = pred_tensor.squeeze()
-
-                if truth_tensor.ndim == 1:
-                    truth_tensor = truth_tensor.reshape(-1, n_features)
-                if pred_tensor.ndim == 1:
-                    pred_tensor = pred_tensor.reshape(-1, n_features)
-
-                all_vals.append(truth_tensor[:, i])
-                all_vals.append(pred_tensor[:, i])
+            for t, p in zip(truth_list, pred_list):
+                all_vals.append(t.squeeze()[:, i])
+                all_vals.append(p.squeeze()[:, i])
             all_vals = torch.cat(all_vals)
-            abs_max = torch.max(torch.abs(all_vals))
-            vmins.append(-abs_max.item())
-            vmaxs.append(abs_max.item())
+            max_abs = torch.max(torch.abs(all_vals)).item()
+            vmins.append(-max_abs)
+            vmaxs.append(max_abs)
     else:
         vmins = [None] * n_features
         vmaxs = [None] * n_features
 
     mode = 'global' if uniform_scale else 'rowwise'
 
+    # --- Loop over cases ---
     for idx, case_name in enumerate(case_names):
         cx, cy = grid_dict[case_name]
-        triang = tri.Triangulation(cx, cy)
-        truth_tensor = truth_list[idx].squeeze()
-        pred_tensor = pred_list[idx].squeeze()
+        truth_tensor = truth_list[idx].squeeze().cpu().numpy()
+        pred_tensor  = pred_list[idx].squeeze().cpu().numpy()
 
         if truth_tensor.ndim == 1:
-            truth_tensor = truth_tensor.reshape(-1, n_features)
+            truth_tensor = truth_tensor[:, np.newaxis]
         if pred_tensor.ndim == 1:
-            pred_tensor = pred_tensor.reshape(-1, n_features)
+            pred_tensor = pred_tensor[:, np.newaxis]
 
-        fig, axs = plt.subplots(n_features, 3, figsize=(12, 2.5 * n_features), constrained_layout=True)
+        fig, axs = plt.subplots(n_features, 3,
+                                figsize=(12, 2.5 * n_features),
+                                constrained_layout=True)
         if n_features == 1:
             axs = np.expand_dims(axs, axis=0)
 
         for i in range(n_features):
-            truth = truth_tensor[:, i].cpu().numpy()
-            pred = pred_tensor[:, i].cpu().numpy()
+            truth = truth_tensor[:, i]
+            pred  = pred_tensor[:, i]
             name = feature_names[i]
-            title_prefix = f"{name}"
+            title_prefix = f"{key.upper()} {name}"
 
             if not uniform_scale:
                 max_abs = max(np.abs(truth).max(), np.abs(pred).max())
-                vmin = -max_abs
-                vmax = max_abs
+                vmin, vmax = -max_abs, max_abs
             else:
-                vmin = vmins[i]
-                vmax = vmaxs[i]
+                vmin, vmax = vmins[i], vmaxs[i]
 
-            plot_triplet(axs[i], triang, truth, pred, title_prefix, vmin=vmin, vmax=vmax)
+            plot_triplet_pcolormesh(axs[i], cx, cy, truth, pred,
+                                    title_prefix, vmin=vmin, vmax=vmax, cmap=cmap)
 
-        fig.suptitle(f"{case_name} - {key.upper()} ({mode} scale)", fontsize=14)
-
-        fig_path = Path(save_dir)/f'{best_fin}_model'/ f"{case_name}_{key}_{mode}_scale.png"
+        fig.suptitle(f"{case_name} – {key.upper()} ({mode} scale)",
+                     fontsize=14, y=0.995)
+        fig_path = Path(save_dir) / f"{best_fin}_model" / f"{case_name}_{key}_{mode}_scale.png"
         fig_path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            fig.savefig(str(fig_path), dpi=150)
-        except Exception as e:
-            print(f"[ERROR] Could not save figure {fig_path}: {e}")
-            raise
+        fig.savefig(fig_path, dpi=150)
         plt.close(fig)
 
 
-        
-
-
-def plot_all_tensor_fields(pred_dict, truth_dict, case_names, grid_dict, save_dir, config, best_fin=''):
-    tensor_keys = ['rst', 'a_ij', 'b_ij', 'tke']
+# --------------------------------------------------------------------------
+def plot_all_tensor_fields(pred_dict, truth_dict, case_names, grid_dict,
+                           save_dir, config, best_fin=''):
+    """Wrapper to handle all tensor families (rst, a_ij, b_ij, tke)."""
+    tensor_keys = ['a_ij', 'b_ij', 'rst', 'tke']
 
     for key in tensor_keys:
         pred_list = pred_dict[key]
         truth_list = truth_dict[key]
 
-        # Save in subdir per tensor key
+        # Skip empty ones
+        if pred_list is None or all(p is None for p in pred_list):
+            continue
+
         save_subdir = Path(save_dir) / key
         save_subdir.mkdir(parents=True, exist_ok=True)
 
         # Global (uniform) scale
-        plot_all_preds(
-            pred_list=pred_list,
-            truth_list=truth_list,
-            case_names=case_names,
-            grid_dict=grid_dict,
-            key=key,
-            save_dir=save_subdir,
-            config=config,
-            uniform_scale=True,
-            best_fin=best_fin,
-        )
+        plot_all_preds(pred_list, truth_list, case_names, grid_dict,
+                       key, save_subdir, config, uniform_scale=True, best_fin=best_fin)
 
         # Row-wise (non-uniform) scale
-        plot_all_preds(
-            pred_list=pred_list,
-            truth_list=truth_list,
-            case_names=case_names,
-            grid_dict=grid_dict,
-            key=key,
-            save_dir=save_subdir,
-            config=config,
-            uniform_scale=False,
-            best_fin=best_fin
-        )
+        plot_all_preds(pred_list, truth_list, case_names, grid_dict,
+                       key, save_subdir, config, uniform_scale=False, best_fin=best_fin)

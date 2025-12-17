@@ -402,18 +402,36 @@ def summate_losses(loss_group: dict) -> float:
     return sum(loss_group.values())
 
 def summate_loss_groups(loss_dict):
-    total = 0.0
+    """
+    Return a torch scalar suitable for backward().
+    """
+    total = None  # torch accumulator
+    print('DEBUG loss dict keys', loss_dict.keys())
     for group in ['data', 'phys', 'constraint']:
-        group_losses = loss_dict.get(group)
-        if group_losses is None:
-            continue  # skip disabled group
+        lg = loss_dict.get(group)
+        if lg is None:
+            continue
 
-        # Sum all components except 'net' key
-        group_loss = sum(val for k, val in group_losses.items() if k != 'net')
-        group_losses['net'] = group_loss
-        #print(f"[DEBUG][summate_loss_groups] Group '{group}' loss components: {group_losses}")
-        #print(f"[DEBUG][summate_loss_groups] Group '{group}' net loss: {group_loss}")
-        total += group_loss
-    loss_dict['net'] = total
-   # print(f"[DEBUG][summate_loss_groups] Total net loss: {total}")
+        # Sum *only* torch tensors
+        group_total = None
+        for k, v in lg.items():
+            if k == 'net':
+                continue
+            group_total = v if group_total is None else (group_total + v)
+
+        # If no losses in this group, skip it
+        if group_total is None:
+            continue
+
+        # Store net for logging (as float)
+        lg['net'] = group_total.detach().item()
+
+        # Accumulate into total (as torch scalar)
+        total = group_total if total is None else (total + group_total)
+
+    # Final net loss
+    if total is None:
+        total = torch.tensor(0.0, requires_grad=True)
+
+    loss_dict['net'] = total.detach().item()
     return total

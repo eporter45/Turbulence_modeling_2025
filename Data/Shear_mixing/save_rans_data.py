@@ -17,7 +17,7 @@ import pandas as pd
 idx = '2'
 case = f'Case{idx}'
 filename = f'CFD_{case}_Results.txt'
-savedir = os.path.join(project_root, 'Shear_mixing','RANS', 'Clean')
+savedir = os.path.join(project_root, 'Shear_mixing','EX_RANS', 'Clean')
 case_dir = os.path.join(project_root, 'Shear_mixing','Raw_data', 'RANS')
 def save_raw_rans_df(filename, file_dir, save_dir, save_name):
     file_path = os.path.join(case_dir, filename)

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import gc
 
-def plot_input_kde(x_train_normed, x_test_normed, train_cases, test_cases, config, save_dir):
+def plot_input_kde(x_train_normed: object, x_test_normed: object, train_cases: object, test_cases: object, config: object, save_dir: object) -> None:
     """
     Plot KDE for each input feature from normalized x_train/x_test.
 
@@ -58,3 +58,35 @@ def plot_input_kde(x_train_normed, x_test_normed, train_cases, test_cases, confi
         gc.collect()
 
 
+def plot_kdes_by_feature(x_train, x_test, norm='raw', save=False, save_path=''):
+    all_data = {**x_train, **x_test}
+    feature_names = list(next(iter(all_data.values())).columns)
+
+    for feat in feature_names:
+        plt.figure(figsize=(8, 4))
+        plotted = False
+        for case, df in all_data.items():
+            if df[feat].nunique() > 1:
+                sns.kdeplot(df[feat], label=case, linewidth=1.5)
+                plotted = True
+            else:
+                print(f"[INFO] Skipping KDE for feature {feat} in case {case} due to 0 variance")
+
+        if plotted:
+            plt.title(f'KDE for {norm} Feature: {feat}')
+            plt.xlabel('Normalized Value')
+            plt.ylabel('Density')
+            plt.legend()
+            plt.tight_layout()
+
+            if save:
+                if save_path == '':
+                    raise ValueError('[Error] no savepath passed into function')
+                fname = f'{feat}_{norm}_case_kde.png'
+                fpath = os.path.join(save_path, fname)
+                plt.savefig(fpath)
+                plt.close()
+            else:
+                plt.show()
+        else:
+            plt.close()  # nothing plotted, avoid showing blank plots

@@ -9,7 +9,8 @@ import sys
 import random
 # Dynamically resolve project root (Phys_KAN root dir)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
+print(PROJECT_ROOT)
+print(os.getcwd())
 # Make sure Phys_KAN root is in sys.path
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -26,45 +27,52 @@ print(f'cwd: {os.getcwd()}')
 print(f'Proj_root: {PROJECT_ROOT}')
 cfg = {
        
-    "debug": False,                         # Optional debug mode to skip full evaluation in evaluate_cases
-    "trial_name": "single_inter_c2_f2",        # Replace with a key from TRIALS
-    "eval_training_cases": True,             # Whether to evaluate predictions on training cases
+    "debug": False,                             # Optional debug mode to skip full evaluation in evaluate_cases
+    "trial_name": "single_inter_c2_f2",         # Replace with a key from TRIALS
+    "eval_training_cases": True,                # Whether to evaluate predictions on training cases
     "seed": 42,
     
     "paths": {
-        "name": "new_losses_aij_t1",              # name the run/output dir
+        "name": "tbnn_v4",                    # name the run/output dir
         "output_dir": "Pipelines/Aij/outputs",          # Base output directory
-        "data_dir": ''   # Base data directory
+        "data_dir": PROJECT_ROOT + '/Data/Shear_mixing/Training_data_10_2025'                                  # Base data directory
     },
 
     "features": {
-        "dnd": "nondim",                    # dimensional or nondim data ['dim', 'nondim']
-        "grad_type": "MLS",                 # RANS feat eng grad type: [MLS, og]
-        "input": 'FS9',
+        "dnd": "nondim",                     # dimensional or nondim data ['dim', 'nondim']
+        "grad_type": "og",                  # RANS feat eng grad type: [MLS, og]
+        "input": 'FS0',
         "norm": 'global',
-        #"FS1",    # e.g., FS1, FS2 read Features.make_featursets.py
-        "output": ['a_xx', 'a_xy', 'a_yy', 'a_xz', 'a_yz', 'a_zz', 'tke'],  # Model output targets
-        "y_norm": False,               # Norm method read Preprocess.load_and_norm.py
+        'output_family': 'aij',
+        "y_norm": False,                     # Norm method read Preprocess.load_norm.py
         'denorm_loss': False,
-        "in_is_out": False,                 # for Debugging, if we want to recreate data
+        "in_is_out": False,                  # for Debugging, if we want to recreate data
         'trim_z': True,
-        "save_kde": True                    # Whether to plot/save KDE plots
+        "save_kde": False,                     # Whether to plot/save KDE plots
+        # --- TBNN-specific ---
+        "invariants": ["tr_S2", "tr_S2_dev", "tr_R2", "tr_R2_dev", "S:R"],
+        'tensor_basis': ["S", "S2_dev", "S_dev2", "R2_dev"],
+        'basis_norm': 'k_polynomial',
     },
 
     "model": {
-        "type": "fcn",                      # Options: "kan", "fcn"
+        "type": "tbnn",                       # Options: "kan", "fcn" or #tbnn
+        "seed": 42,  # Random seed for reproducibility
+        "enforce_symmetry": True,
+        "enforce_traceless": True,
         #FCN specific Params
         "dropout": 0.005,                    # Dropout probability (only for FCN)
-        "activation": "leakyrelu",          # Activation function: relu, leakyrelu, tanh, etc.
-        "layers": 15,                       # Number of layers (for FCN)
-        "width": 10,                     # Width of each hidden layer (for FCN)
-
+        "activation": "leakyrelu",           # Activation function: relu, leakyrelu, tanh, etc.
+        "layers": 15,                        # Number of layers (for FCN)
+        "width": 10,                         # Width of each hidden layer (for FCN)
         # KAN-specific parameters:
         "shape": [[5,5], [5,5], [5,5]],      # Example layer widths for KAN initialization
-        "spline_order": 3,                # Spline order for KAN grid
-        "seed": 42,                      # Random seed for reproducibility in KAN
-        "grid_range": [-0.2, 1.2]        # Range for KAN grid
-    },
+        "spline_order": 3,                   # Spline order for KAN grid
+        "grid_range": [-0.2, 1.2],           # Range for KAN grid
+
+        # --- TBNN-specific ---
+        "hidden_dims": [32, 32, 32],   # hidden layer sizes
+        },
 
     "training": {
         "criterion": "mse",  # Options: "mse", "mae", "rel_mse"
@@ -72,22 +80,22 @@ cfg = {
         "beta": 1.0,
         
         "optimizer": "adam",      # Optimizer type: "adam", "adamw", "rmsprop"
-        "lr": 0.01,              # Learning rate
+        "lr": 0.0025,              # Learning rate
         "lambda": 0.00005,         # Weight decay (can be "" if unused)
         "alpha": 0.99,            # Alpha for RMSprop (ignored for Adam)
     
-        "epochs": 500,            # Total number of epochs
-        "batch_size": 2048,        # Samples per batch
+        "epochs": 50,            # Total number of epochs
+        "batch_size": 4096,        # Samples per batch
         "eval_every": 20,         # Evaluation/logging frequency
         "seed": 42,               # Random seed
     
         "scheduler": {
-            "enabled": True,
+            "enabled": False,
             "delay": 500,
             "type": "step",  # Options: reduce_on_plateau, step, multistep
             #for step
             'step_size': 300,
-            'gamma': 0.5,
+            'gamma': 0.75,
             # for reduce
             "patience": 300,
             "factor": 0.65,
@@ -109,17 +117,17 @@ cfg = {
                     "types": ["log_euclidean"],  # or your actual phys loss type
                         },
                 "constraint": {
-                    "enabled": True,
+                    "enabled": False,
                     "types": ['inv_a_comp'],  # or your constraint loss type
                         },
                 "data": {
                     "enabled": True,  # Just enable/disable, no type for data
-                     "types": ['comp'],
-                     "tke_scalar": 5.0,
+                     "types": ['crit'],
+                     "tke_scalar": 0.0,
                         }
                     },       
             "weights": {
-                "enabled": True,  # Top-level control over whether to use custom weighting        
+                "enabled": False,  # Top-level control over whether to use custom weighting
                 "group": {
                     "enabled": True,
                     "dynamic": False,
