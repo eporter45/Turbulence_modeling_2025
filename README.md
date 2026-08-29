@@ -18,26 +18,19 @@ Reynolds-Averaged Navier-Stokes (RANS) models are widely used in turbomachinery 
 
 For common eddy-viscosity models, the Reynolds stress is closed with the Boussinesq approximation,
 
-\[
--\rho \overline{u_i' u_j'}
-=
-2\mu_t S_{ij}
--
-\frac{2}{3}\rho k\delta_{ij},
-\]
+$$-\rho \overline{u_i' u_j'} =2\mu_t S_{ij}- \frac{2}{3}\rho k\delta_{ij}$$
 
 where
 
-\[
-S_{ij}
-=
+$$
+S_{ij} =
 \frac{1}{2}
 \left(
 \frac{\partial u_i}{\partial x_j}
 +
 \frac{\partial u_j}{\partial x_i}
 \right).
-\]
+$$
 
 This directly ties Reynolds-stress anisotropy to the local mean strain rate. In anisotropy space, that restriction confines conventional eddy-viscosity RANS predictions to the plane of strain and prevents them from representing the full turbulence structure observed in shear-mixing layers.
 
@@ -53,7 +46,7 @@ The original application was compressible turbulent shear mixing representative 
 
 A major turbomachinery loss mechanism occurs near blade trailing edges, where pressure-side and suction-side flows merge into a turbulent shear layer. The resulting turbulence is strongly anisotropic, and the shape of the Reynolds-stress tensor affects mixing, momentum transport, loss generation, and downstream blade-row behavior.
 
-RANS remains attractive because of cost, but the Boussinesq approximation prevents common \(k-\omega\) SST and \(k-\epsilon\) closures from reproducing the full range of anisotropy observed experimentally.
+RANS remains attractive because of cost, but the Boussinesq approximation prevents common $k-\omega$ SST and $k-\epsilon$ closures from reproducing the full range of anisotropy observed experimentally.
 
 The project therefore treats turbulence closure as a supervised learning problem:
 
@@ -84,65 +77,56 @@ The objective is not to replace the governing equations with a black-box surroga
 
 The Reynolds stress tensor is
 
-\[
-R_{ij}
-=
+$$
+R_{ij}=
 \overline{u_i' u_j'}.
-\]
+$$
 
 Turbulent kinetic energy is defined from its trace,
 
-\[
-k
-=
+$$
+k=
 \frac{1}{2}R_{ii}.
-\]
+$$
 
 The anisotropy tensor is
 
-\[
-a_{ij}
-=
-R_{ij}
--
+$$
+a_{ij}=
+R_{ij}-
 \frac{2}{3}k\delta_{ij},
-\]
+$$
 
 and the normalized anisotropy tensor is
 
-\[
-b_{ij}
-=
-\frac{a_{ij}}{2k}
-=
-\frac{R_{ij}}{2k}
--
+$$
+b_{ij}=
+\frac{a_{ij}}{2k}=
+\frac{R_{ij}}{2k}-
 \frac{1}{3}\delta_{ij}.
-\]
+$$
 
 By construction,
 
-\[
+$$
 \mathrm{tr}(a_{ij}) = 0,
 \qquad
 \mathrm{tr}(b_{ij}) = 0.
-\]
+$$
 
 The anisotropy invariants used to characterize turbulence structure are
 
-\[
-II
-=
+$$
+II=
 \frac{1}{2}a_{ij}a_{ji},
-\]
+$$
 
 and
 
-\[
-III
-=
+$$
+III=
 \frac{1}{3}a_{ij}a_{jk}a_{ki}.
-\]
+$$
 
 Equivalent invariant relationships can also be constructed from the eigenvalues of the anisotropy tensor. These component-derived and eigenvalue-derived quantities are used in the physics and constraint losses implemented in this repository.
 
@@ -152,81 +136,64 @@ Equivalent invariant relationships can also be constructed from the eigenvalues 
 
 The RANS inputs are derived from the steady Favre-Averaged Reynolds-Averaged Navier-Stokes momentum equation,
 
-\[
-\frac{\partial}{\partial x_j}
-\left(
+$$
+\frac{\partial}{\partial x_j} \left(
 \rho \tilde{u}_i\tilde{u}_j
-\right)
-=
--
-\frac{\partial p}{\partial x_i}
-+
-\frac{\partial \tau_{ij}}{\partial x_j}
--
+\right)= - \frac{\partial p}{\partial x_i} +
+\frac{\partial \tau_{ij}}{\partial x_j} -
 \frac{\partial \rho u_i''u_j''}{\partial x_j}.
-\]
+$$
 
 The mean momentum-flux term can be decomposed as
 
-\[
+$$
 \frac{\partial}{\partial x_j}
-\left(
-\rho u_i u_j
-\right)
-=
-\rho u_j \frac{\partial u_i}{\partial x_j}
-+
+\left( \rho u_i u_j \right) =
+\rho u_j \frac{\partial u_i}{\partial x_j} +
 \rho u_i \frac{\partial u_j}{\partial x_j}.
-\]
+$$
 
 The first term represents advection and the second captures dilatation / compressibility effects.
 
 Using the velocity-gradient decomposition,
 
-\[
-\frac{\partial u_i}{\partial x_j}
-=
+$$
+\frac{\partial u_i}{\partial x_j}=
 S_{ij}
-+
-\Omega_{ij},
-\]
++\Omega_{ij},
+$$
 
 with
 
-\[
-S_{ij}
-=
+$$
+S_{ij}=
 \frac{1}{2}
 \left(
 \frac{\partial u_i}{\partial x_j}
 +
 \frac{\partial u_j}{\partial x_i}
 \right),
-\]
+$$
 
 and
 
-\[
-\Omega_{ij}
-=
+$$
+\Omega_{ij}=
 \frac{1}{2}
 \left(
-\frac{\partial u_i}{\partial x_j}
--
+\frac{\partial u_i}{\partial x_j}-
 \frac{\partial u_j}{\partial x_i}
 \right),
-\]
+$$
 
 the advection term is separated into strain- and rotation-induced contributions,
 
-\[
+$$
 \rho u_j
-\frac{\partial u_i}{\partial x_j}
-=
-\rho u_j S_{ij}
-+
+\frac{\partial u_i}{\partial x_j}=
+\rho u_j S_{ij} +
 \rho u_j \Omega_{ij}.
-\]
+$$
 
 This decomposition was used to construct physically interpretable model inputs rather than relying only on primitive flow variables.
 
@@ -242,9 +209,9 @@ The primary experimental dataset is the **NASA/UIUC compressible mixing-layer ca
 
 The study includes multiple convective-Mach-number conditions spanning approximately
 
-\[
+$$
 M_c = 0.185 \rightarrow 0.883
-\]
+$$
 
 with additional heated-case data retained in the repository.
 
@@ -261,11 +228,10 @@ The experimental files contain combinations of:
 
 The convective Mach number is defined as
 
-\[
-M_c
-=
+$$
+M_c =
 \frac{U_1-U_2}{a_1+a_2}.
-\]
+$$
 
 ### Matched RANS simulations
 
@@ -283,15 +249,15 @@ The feature-engineering stage transforms primitive RANS outputs into quantities 
 
 Feature families used across the project include:
 
-- velocity components \(u_i\)
-- static pressure \(p\)
-- density \(\rho\)
-- temperature \(T\)
-- dynamic viscosity \(\mu(T)\)
-- velocity gradients \(\partial u_i / \partial x_j\)
-- pressure gradients \(\partial p / \partial x_i\)
-- strain-rate tensor \(S_{ij}\)
-- rotation-rate tensor \(\Omega_{ij}\)
+- velocity components $u_i$
+- static pressure $p$
+- density $\rho$
+- temperature $T$
+- dynamic viscosity $\mu(T)$
+- velocity gradients $\partial u_i / \partial x_j$
+- pressure gradients $\partial p / \partial x_i$
+- strain-rate tensor $S_{ij}$
+- rotation-rate tensor $\Omega_{ij}$
 - strain-induced advection
 - rotation-induced advection
 - compressibility / convection terms
@@ -301,24 +267,23 @@ Feature families used across the project include:
 
 For the thermophysical preprocessing, air is treated as an ideal gas,
 
-\[
+$$
 p = \rho R T,
-\]
+$$
 
 and temperature-dependent viscosity is computed using Sutherland's relation,
 
-\[
-\mu(T)
-=
+$$
+\mu(T) =
 \mu_{\mathrm{ref}}
 \left(
 \frac{T}{T_{\mathrm{ref}}}
 \right)^{3/2}
 \frac{T_{\mathrm{ref}}+S}
 {T+S},
-\]
+$$
 
-with \(S \approx 110\,\mathrm{K}\) for air.
+with $S \approx 110\,\mathrm{K}$ for air.
 
 ### Moving Least Squares gradients
 
@@ -338,21 +303,20 @@ The final feature set used for the interpolation and extrapolation trials docume
 
 | Expression | Feature | Physical role |
 |---|---|---|
-| \(\rho u_j S_{ij}\) | Strain-induced advection | Mean-flow transport associated with the symmetric velocity-gradient component |
-| \(\rho u_j \Omega_{ij}\) | Rotation-induced advection | Mean-flow transport associated with local rotation / vorticity |
-| \(\rho u_i \frac{\partial u_j}{\partial x_j}\) | Convection / dilatation | Compressibility contribution from velocity divergence |
-| \(\tau_{ij}\) | Viscous stress tensor | Molecular viscous transport |
-| \(\frac{\partial p}{\partial x_i}\) | Pressure gradient | Mean pressure-force contribution |
-| \(p\) | Static pressure | Local thermodynamic / mean-flow state |
-| \(u_i\) | Velocity components | Local mean-flow state |
-| \(\mu(T)\) | Sutherland viscosity | Temperature-dependent molecular viscosity |
-| \(\rho\) | Density | Local compressible-flow state |
+| $\rho u_j S_{ij}$ | Strain-induced advection | Mean-flow transport associated with the symmetric velocity-gradient component |
+| $\rho u_j \Omega_{ij}$| Rotation-induced advection | Mean-flow transport associated with local rotation / vorticity |
+| $\rho u_i \frac{\partial u_j}{\partial x_j}$ | Convection / dilatation | Compressibility contribution from velocity divergence |
+| $\tau_{ij}$| Viscous stress tensor | Molecular viscous transport |
+| $\frac{\partial p}{\partial x_i}$ | Pressure gradient | Mean pressure-force contribution |
+| $p$ | Static pressure | Local thermodynamic / mean-flow state |
+| $u_i$ | Velocity components | Local mean-flow state |
+| $\mu(T)$ | Sutherland viscosity | Temperature-dependent molecular viscosity |
+| $\rho$ | Density | Local compressible-flow state |
 
 Thus, the feature vector used in the reported trials can be summarized schematically as
 
-\[
-\mathbf{x}
-=
+$$
+\mathbf{x} =
 \left[
 \rho u_j S_{ij},\;
 \rho u_j \Omega_{ij},\;
@@ -362,7 +326,7 @@ Thus, the feature vector used in the reported trials can be summarized schematic
 p,\;
 u_i,\;\mu(T),\;\rho
 \right],
-\]
+$$
 
 with only the components supported by the two-dimensional measurement geometry retained.
 
@@ -376,53 +340,47 @@ Before statistical normalization, physical quantities are nondimensionalized usi
 
 Representative forms are
 
-\[
-\hat{u}_i
-=
+$$
+\hat{u}_i =
 \frac{u_i}{U_{\mathrm{ref}}},
-\]
+$$
 
-\[
-\hat{T}
-=
+$$
+\hat{T} =
 \frac{T}{T_{\mathrm{ref}}},
-\]
+$$
 
-\[
-\hat{p}
-=
+$$
+\hat{p} =
 \frac{p}{p_{\mathrm{ref}}},
-\]
+$$
 
 and
 
-\[
-\hat{x}_i
-=
+$$
+\hat{x}_i =
 \frac{x_i}{L_{\mathrm{ref}}}.
-\]
+$$
 
 Spatial derivatives are transformed consistently through the chain rule,
 
-\[
+$$
 \frac{\partial \hat{\phi}}
-{\partial \hat{x}_j}
-=
+{\partial \hat{x}_j} =
 \frac{L_{\mathrm{ref}}}{\phi_{\mathrm{ref}}}
 \frac{\partial \phi}
 {\partial x_j}.
-\]
+$$
 
 The resulting nondimensional steady momentum equation retains the relative physical scale of each term and introduces the reference Reynolds number,
 
-\[
-Re_0
-=
+$$
+Re_0 =
 \frac{\rho_{\mathrm{ref}}
 U_{\mathrm{ref}}
 L_{\mathrm{ref}}}
 {\mu_{\mathrm{ref}}}.
-\]
+$$
 
 ---
 
@@ -463,15 +421,14 @@ The FCN is a configurable multilayer perceptron used as the primary baseline for
 
 The Tensor Basis Neural Network follows the invariant tensor-basis formulation,
 
-\[
-b_{ij}
-=
+$$
+b_{ij} =
 \sum_{n=1}^{N}
 g_n(\lambda_1,\lambda_2,\ldots)
 T_{ij}^{(n)},
-\]
+$$
 
-where the network predicts scalar coefficient functions \(g_n\) from invariant inputs, and those coefficients are contracted with tensor-basis elements \(T_{ij}^{(n)}\).
+where the network predicts scalar coefficient functions $g_n$ from invariant inputs, and those coefficients are contracted with tensor-basis elements $T_{ij}^{(n)}$.
 
 This structure enforces important rotational and tensorial properties that a plain FCN does not encode directly.
 
@@ -507,25 +464,22 @@ The principal targets explored in the repository are:
 
 ### Reynolds stress
 
-\[
+$
 R_{ij}
-\]
+$
 
 ### Anisotropy
 
-\[
-a_{ij}
-\qquad \text{and/or} \qquad
+$$
+a_{ij} \qquad \text{and/or} \qquad
 b_{ij}
-\]
+$
 
 ### Turbulent kinetic energy
 
-\[
-k
-=
-\frac{1}{2}R_{ii}
-\]
+$$
+k = \frac{1}{2}R_{ii}
+$$
 
 ### Thermodynamic quantities
 
@@ -549,15 +503,12 @@ A major research component of this codebase is the hierarchical loss formulation
 
 The total objective is organized as
 
-\[
-\mathcal{L}
-=
-w_{\mathrm{data}}\mathcal{L}_{\mathrm{data}}
-+
-w_{\mathrm{phys}}\mathcal{L}_{\mathrm{phys}}
-+
+$$
+\mathcal{L}=
+w_{\mathrm{data}}\mathcal{L}_{\mathrm{data}} +
+w_{\mathrm{phys}}\mathcal{L}_{\mathrm{phys}} +
 w_{\mathrm{const}}\mathcal{L}_{\mathrm{const}}.
-\]
+$$
 
 ### Data losses
 
@@ -580,13 +531,11 @@ Physics losses connect predicted quantities that should remain mutually consiste
 
 For example, predicted \(R_{ij}\), \(k\), and \(a_{ij}\) should satisfy
 
-\[
-a_{ij}
-=
-R_{ij}
--
+$$
+a_{ij}=
+R_{ij}-
 \frac{2}{3}k\delta_{ij}.
-\]
+$$
 
 ### Constraint losses
 
