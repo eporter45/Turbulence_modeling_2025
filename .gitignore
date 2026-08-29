@@ -28,3 +28,6 @@ __pycache__/
 *.tmp
 
 /KAN_lib/
+
+# Documentation artifacts (report, presentation, figures) are tracked
+!/docs/**
