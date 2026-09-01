@@ -811,7 +811,7 @@ The code in this repository is frozen, but the original research identified seve
 These items describe research directions rather than planned development of this frozen codebase.
 
 
-Third-Party Code
+#Third-Party Code
 
 This project builds on two external libraries. Neither is my work; both are used under their original licenses and are noted here so the boundary between them and my own contributions is unambiguous.
 
