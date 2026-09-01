@@ -810,6 +810,29 @@ The code in this repository is frozen, but the original research identified seve
 
 These items describe research directions rather than planned development of this frozen codebase.
 
+
+Third-Party Code
+
+This project builds on two external libraries. Neither is my work; both are used under their original licenses and are noted here so the boundary between them and my own contributions is unambiguous.
+
+pykan — Kolmogorov-Arnold Networks, by Ziming Liu et al. (MIT). Upstream: https://github.com/KindXiaoming/pykan
+
+A copy of pykan v0.2.8 was vendored into this repository as KAN_lib/ during the October 2025 phase of the project, and was removed from the tracked tree in the December 2025 restructure. It remains in git history at commit 260e358. Models/KAN.py still imports from it.
+
+My modifications to pykan were small and confined to two files:
+
+kan/MultKAN.py — appended a KAN_me wrapper class after the upstream KAN = MultKAN alias. It composes MultKAN rather than subclassing it, and exposes forward, fit, plot, apply_symbolic_rule, and width / symbolic_weight / layers properties, so the model plugs into this project's training loop and loss-tracking utilities. Upstream MultKAN itself is unchanged.
+kan/hypothesis.py — one import line repointed from kan.utils to KAN_lib.kan.utils to match the vendored package path.
+
+Every other module in KAN_lib/kan/ (KANLayer.py, LBFGS.py, MLP.py, Symbolic_KANLayer.py, compiler.py, experiment.py, feynman.py, spline.py, utils.py, __init__.py) is byte-identical to upstream v0.2.8, as are the bundled docs/ and tutorials/ directories. The original MIT license is retained at KAN_lib/LICENSE.
+
+tbnn — Tensor Basis Neural Network, by Sandia National Laboratories. Upstream: https://github.com/sandialabs/tbnn
+
+Included as a git submodule at extern/tbnn (see .gitmodules); source is not vendored into this repository.
+
+My contribution is everything outside KAN_lib/ and extern/: the feature engineering and gradient pipeline (Features/), data preparation and non-dimensionalization (Data/, PreProcess/), model definitions and training harness (Models/, train_utils/, Pipelines/, Trials.py), and post-processing and plotting (Post_Process/, Plotting/).
+
+
 ---
 
 ## Archive Note
